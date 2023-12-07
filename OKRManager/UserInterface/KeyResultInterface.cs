@@ -114,31 +114,52 @@ public class KeyResultInterface
         }
     }
 
-
-
-
+    
     private void AddSubTask()
     {
-        Console.WriteLine("Digite o título da nova SubTask:");
-        string title = _verificationService.VerifyIsNotNull(Console.ReadLine());
-
-        Console.WriteLine("Digite a descrição da nova SubTask:");
-        string description = _verificationService.VerifyIsNotNull(Console.ReadLine());
-
-        Console.WriteLine("Digite a prioridade da nova SubTask (Urgente, Importante, Normal):");
-        PriorityLevel priority;
-        while (!System.Enum.TryParse(Console.ReadLine(), true, out priority))
+        try
         {
-            Console.WriteLine("Prioridade inválida. Tente novamente (Urgente, Importante, Normal).");
+            Console.WriteLine("Digite o título da nova SubTask:");
+            string title = _verificationService.VerifyIsNotNull(Console.ReadLine());
+
+            Console.WriteLine("Digite a descrição da nova SubTask:");
+            string description = _verificationService.VerifyIsNotNull(Console.ReadLine());
+
+            Console.WriteLine("Digite a prioridade da nova SubTask (Urgente, Importante, Normal):");
+            PriorityLevel priority;
+            while (!System.Enum.TryParse(Console.ReadLine(), true, out priority))
+            {
+                Console.WriteLine("Prioridade inválida. Tente novamente (Urgente, Importante, Normal).");
+            }
+
+            Console.WriteLine("Digite a data de início da nova SubTask (formato: dd/MM/yyyy):");
+            DateTime startDate;
+            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate) || startDate < DateTime.Now)
+            {
+                Console.WriteLine("Data inválida. Certifique-se de inserir uma data válida e futura.");
+            }
+
+            Console.WriteLine("Digite a data de término da nova SubTask (formato: dd/MM/yyyy):");
+            DateTime endDate;
+            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out endDate) || endDate < DateTime.Now)
+            {
+                Console.WriteLine("Data inválida. Certifique-se de inserir uma data válida e futura.");
+            }
+
+            var newSubTask = new SubTask(title, description, startDate, endDate, false, priority, _selectedKeyResult);
+
+            _subTaskRepository.Update(newSubTask);
+
+            Console.WriteLine("SubTask adicionada com sucesso!");
+            Thread.Sleep(1000);
         }
-
-        var newSubTask = new SubTask(title, description, DateTime.Now, DateTime.Now.AddDays(30), false, priority, _selectedKeyResult);
-
-        _subTaskRepository.Update(newSubTask);
-
-        Console.WriteLine("SubTask adicionada com sucesso!");
-        Thread.Sleep(1000);
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao adicionar SubTask: {ex.Message}");
+        }
     }
+
+
 
     private void SelectSubTask()
     {
@@ -161,44 +182,121 @@ public class KeyResultInterface
     }
 
     private void UpdateKeyResult()
+{
+    Console.Clear();
+    Console.WriteLine("Atualizando Resultado Chave");
+    Console.WriteLine("---------------------------");
+
+    // Exibir detalhes do resultado chave
+    DisplayKeyResultDetails();
+
+    Console.WriteLine("\nOpções de Atualização:");
+    Console.WriteLine("1. Atualizar Título");
+    Console.WriteLine("2. Atualizar Descrição");
+    Console.WriteLine("3. Atualizar Data de Início");
+    Console.WriteLine("4. Atualizar Data de Término");
+    Console.WriteLine("5. Marcar como Concluído");
+    Console.WriteLine("6. Voltar ao Menu Anterior");
+
+    Console.Write("Escolha uma opção: ");
+    string choiceStr = Console.ReadLine();
+
+    if (int.TryParse(choiceStr, out int choice))
     {
-        Console.Clear();
-        Console.WriteLine("Atualizando Resultado Chave:\n");
-
-        Console.WriteLine($"Título Atual: {_selectedKeyResult.Title}");
-        Console.WriteLine($"Descrição Atual: {_selectedKeyResult.Description}");
-        Console.WriteLine($"Data de Início Atual: {_selectedKeyResult.StartDate.ToShortDateString()}");
-        Console.WriteLine($"Data de Término Atual: {_selectedKeyResult.EndDate.ToShortDateString()}");
-        Console.WriteLine($"Status Atual: {_selectedKeyResult.Status}");
-
-        Console.WriteLine("\nDigite os novos dados:");
-
-        Console.Write("Novo Título: ");
-        string newTitle = Console.ReadLine();
-
-        Console.Write("Nova Descrição: ");
-        string newDescription = Console.ReadLine();
-
-        Console.Write("Nova Data de Início (formato dd/MM/yyyy): ");
-        if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newStartDate))
+        switch (choice)
         {
-            _selectedKeyResult.StartDate = newStartDate;
+            case 1:
+                UpdateTitle();
+                break;
+            case 2:
+                UpdateDescription();
+                break;
+            case 3:
+                UpdateStartDate();
+                break;
+            case 4:
+                UpdateEndDate();
+                break;
+            case 5:
+                MarkAsCompleted();
+                break;
+            case 6:
+                // Voltar ao Menu Anterior
+                break;
+            default:
+                Console.WriteLine("Opção inválida. Tente novamente.");
+                break;
         }
-
-        Console.Write("Nova Data de Término (formato dd/MM/yyyy): ");
-        if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newEndDate))
-        {
-            _selectedKeyResult.EndDate = newEndDate;
-        }
-
-        // Aqui você pode adicionar mais campos conforme necessário.
-
-        // Atualizar os dados no banco de dados (usando o seu método de atualização específico)
-        _keyResultRepository.Update(_selectedKeyResult);
-
-        Console.WriteLine("Resultado Chave atualizado com sucesso!");
-        Thread.Sleep(2000);
     }
+    else
+    {
+        Console.WriteLine("Opção inválida. Tente novamente.");
+    }
+}
+
+private void MarkAsCompleted()
+{
+    _selectedKeyResult.Status = true;
+    _keyResultRepository.Update(_selectedKeyResult);
+    Console.WriteLine("Resultado Chave marcado como concluído com sucesso!");
+}
+
+private void DisplayKeyResultDetails()
+{
+    Console.WriteLine($"Título: {_selectedKeyResult.Title}");
+    Console.WriteLine($"Descrição: {_selectedKeyResult.Description}");
+    Console.WriteLine($"Data de Início: {_selectedKeyResult.StartDate.ToShortDateString()}");
+    Console.WriteLine($"Data de Término: {_selectedKeyResult.EndDate.ToShortDateString()}");
+}
+
+private void UpdateTitle()
+{
+    Console.Write("Novo Título: ");
+    string newTitle = Console.ReadLine();
+    _selectedKeyResult.Title = newTitle;
+    _keyResultRepository.Update(_selectedKeyResult);
+    Console.WriteLine("Título atualizado com sucesso!");
+}
+
+private void UpdateDescription()
+{
+    Console.Write("Nova Descrição: ");
+    string newDescription = Console.ReadLine();
+    _selectedKeyResult.Description = newDescription;
+    _keyResultRepository.Update(_selectedKeyResult);
+    Console.WriteLine("Descrição atualizada com sucesso!");
+}
+
+private void UpdateStartDate()
+{
+    Console.Write("Nova Data de Início (formato: dd/MM/yyyy): ");
+    if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newStartDate))
+    {
+        _selectedKeyResult.StartDate = newStartDate;
+        _keyResultRepository.Update(_selectedKeyResult);
+        Console.WriteLine("Data de Início atualizada com sucesso!");
+    }
+    else
+    {
+        Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+    }
+}
+
+private void UpdateEndDate()
+{
+    Console.Write("Nova Data de Término (formato: dd/MM/yyyy): ");
+    if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newEndDate))
+    {
+        _selectedKeyResult.EndDate = newEndDate;
+        _keyResultRepository.Update(_selectedKeyResult);
+        Console.WriteLine("Data de Término atualizada com sucesso!");
+    }
+    else
+    {
+        Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+    }
+}
+
 
 
     private void DeleteSubTask()

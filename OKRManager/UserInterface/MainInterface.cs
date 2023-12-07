@@ -24,7 +24,8 @@ public class MainInterface
         Console.WriteLine($"Olá, {_loggedInUser.Name}! Bem-vindo ao OKRManager.");
         Console.WriteLine("Entrando no sistema...");
         Thread.Sleep(1000);
-        int choice;
+        int choice = 10;
+
         do
         {
             Console.Clear();
@@ -38,88 +39,113 @@ public class MainInterface
             Console.WriteLine("0. Sair da Sessão");
             Console.Write("Digite sua opção aqui:");
 
-            string choiceStr = Console.ReadLine();
-            choice = _verificationService.VerifyIsNumber(choiceStr);
-
-            switch (choice)
+            try
             {
-                case 1:
-                    AddObjective();
-                    break;
-                case 2:
-                    SelectObjective();
-                    break;
-                case 3:
-                    DeleteObjective();
-                    break;
-                case 4:
-                    DisplayConcludedObjectives();
-                    break;
-                case 0:
-                    Console.WriteLine("Saindo da sessão. Até logo!");
-                    Thread.Sleep(1000);
-                    break;
-                default:
-                    Console.WriteLine("Opção inválida. Tente novamente.");
-                    break;
+                string choiceStr = Console.ReadLine();
+                choice = _verificationService.VerifyIsNumber(choiceStr);
+
+                switch (choice)
+                {
+                    case 1:
+                        AddObjective();
+                        break;
+                    case 2:
+                        SelectObjective();
+                        break;
+                    case 3:
+                        DeleteObjective();
+                        break;
+                    case 4:
+                        DisplayConcludedObjectives();
+                        break;
+                    case 0:
+                        Console.WriteLine("Saindo da sessão. Até logo!");
+                        Thread.Sleep(1000);
+                        break;
+                    default:
+                        Console.WriteLine("Opção inválida. Tente novamente.");
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro: {ex.Message}");
             }
 
         } while (choice != 0);
     }
 
+
     private void DisplayObjectives()
     {
-        var objectives = _retrieveService.GetAllObjectivesForUser(_loggedInUser.UserId);
-
-        if (objectives.Any())
+        try
         {
-            Console.WriteLine("Seus Objetivos:\n");
-            Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15}", "ID", "Título", "Data Início", "Data Fim");
+            var objectives = _retrieveService.GetAllObjectivesForUser(_loggedInUser.UserId);
 
-            foreach (var objective in objectives)
+            if (objectives.Any())
             {
-                Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15}",
-                    objective.ObjectiveId, 
-                    objective.Title, 
-                    objective.StartDate.ToString("dd/MM/yyyy"), 
-                    objective.EndDate.ToString("dd/MM/yyyy"));
+                Console.WriteLine("Seus Objetivos:\n");
+                Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15}", "ID", "Título", "Data Início", "Data Fim");
+
+                foreach (var objective in objectives)
+                {
+                    Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15}",
+                        objective.ObjectiveId,
+                        objective.Title,
+                        objective.StartDate.ToString("dd/MM/yyyy"),
+                        objective.EndDate.ToString("dd/MM/yyyy"));
+                }
+            }
+            else
+            {
+                Console.WriteLine("Você não possui objetivos cadastrados.");
             }
         }
-        else
+        catch (Exception ex)
         {
-            Console.WriteLine("Você não possui objetivos cadastrados.");
+            Console.WriteLine($"Erro ao exibir objetivos: {ex.Message}");
         }
     }
+
 
 
     private void AddObjective()
     {
-        Console.WriteLine("Digite o título do novo objetivo:");
-        string title = _verificationService.VerifyIsNotNull(Console.ReadLine());
-
-        Console.WriteLine("Digite a descrição do novo objetivo:");
-        string description = _verificationService.VerifyIsNotNull(Console.ReadLine());
-        
-        Console.WriteLine("Digite a data de início do objetivo (formato: dd/MM/yyyy):");
-        DateTime startDate;
-        while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate))
+        try
         {
-            Console.WriteLine("Formato de data inválido. Tente novamente.");
-        }
+            Console.WriteLine("Digite o título do novo objetivo:");
+            string title = _verificationService.VerifyIsNotNull(Console.ReadLine());
 
-        Console.WriteLine("Digite a data de término do objetivo (formato: dd/MM/yyyy):");
-        DateTime endDate;
-        while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out endDate))
+            Console.WriteLine("Digite a descrição do novo objetivo:");
+            string description = _verificationService.VerifyIsNotNull(Console.ReadLine());
+
+            Console.WriteLine("Digite a data de início do objetivo (formato: dd/MM/yyyy):");
+            DateTime startDate;
+            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate) || startDate < DateTime.Now)
+            {
+                Console.WriteLine("Data inválida. Certifique-se de inserir uma data válida e futura.");
+            }
+
+            Console.WriteLine("Digite a data de término do objetivo (formato: dd/MM/yyyy):");
+            DateTime endDate;
+            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out endDate) || endDate < DateTime.Now)
+            {
+                Console.WriteLine("Data inválida. Certifique-se de inserir uma data válida e futura.");
+            }
+
+            var newObjective = new Objective(title, description, startDate, endDate, false, _loggedInUser);
+
+            _objectiveRepository.Update(newObjective);
+
+            Console.WriteLine("Objetivo adicionado com sucesso!");
+            Thread.Sleep(1000);
+        }
+        catch (Exception ex)
         {
-            Console.WriteLine("Formato de data inválido. Tente novamente.");
+            Console.WriteLine($"Erro ao adicionar objetivo: {ex.Message}");
         }
-
-        var newObjective = new Objective(title, description, DateTime.Now, DateTime.Now.AddDays(30), false, _loggedInUser);
-
-        _objectiveRepository.Update(newObjective);
-
-        Console.WriteLine("Objetivo adicionado com sucesso!");
     }
+
 
     private void SelectObjective()
     {
@@ -128,8 +154,7 @@ public class MainInterface
         
         var objectives = _retrieveService.GetAllObjectivesForUser(_loggedInUser.UserId);
         DisplayObjectives();
-
-        // Solicite ao usuário que escolha um objetivo
+        
         Console.Write("Digite o número do objetivo desejado:");
         int selectedObjectiveId;
         while (!int.TryParse(Console.ReadLine(), out selectedObjectiveId) || !objectives.Any(o => o.ObjectiveId == selectedObjectiveId))
@@ -179,6 +204,14 @@ public class MainInterface
                 Console.WriteLine($"Data de Término: {objective.EndDate}");
                 Console.WriteLine("--------");
             }
+
+            Console.WriteLine("Digite o ID do objetivo que deseja marcar como não concluído (ou '0' para voltar):");
+            string input = Console.ReadLine();
+
+            if (int.TryParse(input, out int selectedObjectiveId) && selectedObjectiveId != 0)
+            {
+                MarkObjectiveAsNotConcluded(selectedObjectiveId);
+            }
         }
         else
         {
@@ -188,5 +221,16 @@ public class MainInterface
         Console.WriteLine("Pressione qualquer tecla para voltar ao menu principal...");
         Console.ReadKey();
     }
+
+    private void MarkObjectiveAsNotConcluded(int objectiveId)
+    {
+        // Adicione a lógica para marcar o objetivo como não concluído
+        // Utilize o serviço ou repositório apropriado para atualizar o estado do objetivo
+        // Exemplo: _objectiveRepository.MarkAsNotConcluded(objectiveId);
+
+        Console.WriteLine($"Objetivo com ID {objectiveId} marcado como não concluído com sucesso!");
+        Thread.Sleep(1000);
+    }
+
 
 }

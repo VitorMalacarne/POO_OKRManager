@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using OKRManager.Enum;
 using OkrManager.Interfaces;
@@ -65,31 +66,122 @@ namespace OKRManager.UserInterface
         private void EditSubTask()
         {
             Console.Clear();
-            Console.WriteLine("Edição da SubTask:\n");
+            Console.WriteLine("Editando Subtarefa");
+            Console.WriteLine("------------------");
 
-            Console.WriteLine("Digite o novo título da SubTask:");
-            _selectedSubTask.Title = _verificationService.VerifyIsNotNull(Console.ReadLine());
+            // Exibir detalhes da subtarefa
+            DisplaySubTaskDetails();
 
-            Console.WriteLine("Digite a nova descrição da SubTask:");
-            _selectedSubTask.Description = _verificationService.VerifyIsNotNull(Console.ReadLine());
+            Console.WriteLine("\nOpções de Edição:");
+            Console.WriteLine("1. Editar Título");
+            Console.WriteLine("2. Editar Descrição");
+            Console.WriteLine("3. Editar Data de Início");
+            Console.WriteLine("4. Editar Data de Término");
+            Console.WriteLine("5. Editar Prioridade");
+            Console.WriteLine("6. Voltar ao Menu Anterior");
 
-            Console.WriteLine("Digite a nova data de início da SubTask (formato: dd/MM/yyyy):");
-            DateTime newStartDate;
-            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out newStartDate))
+            Console.Write("Escolha uma opção: ");
+            string choiceStr = Console.ReadLine();
+
+            if (int.TryParse(choiceStr, out int choice))
             {
-                Console.WriteLine("Formato de data inválido. Tente novamente.");
+                switch (choice)
+                {
+                    case 1:
+                        EditTitle();
+                        break;
+                    case 2:
+                        EditDescription();
+                        break;
+                    case 3:
+                        EditStartDate();
+                        break;
+                    case 4:
+                        EditEndDate();
+                        break;
+                    case 5:
+                        EditPriority();
+                        break;
+                    case 6:
+                        // Voltar ao Menu Anterior
+                        break;
+                    default:
+                        Console.WriteLine("Opção inválida. Tente novamente.");
+                        break;
+                }
             }
-            _selectedSubTask.StartDate = newStartDate;
-
-            Console.WriteLine("Digite a nova data de término da SubTask (formato: dd/MM/yyyy):");
-            DateTime newEndDate;
-            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", null, System.Globalization.DateTimeStyles.None, out newEndDate))
+            else
             {
-                Console.WriteLine("Formato de data inválido. Tente novamente.");
+                Console.WriteLine("Opção inválida. Tente novamente.");
             }
-            _selectedSubTask.EndDate = newEndDate;
+        }
 
-            Console.WriteLine("Digite a nova prioridade da SubTask (Normal, Importante, Urgente):");
+        private void DisplaySubTaskDetails()
+        {
+            Console.WriteLine($"Título: {_selectedSubTask.Title}");
+            Console.WriteLine($"Descrição: {_selectedSubTask.Description}");
+            Console.WriteLine($"Data de Início: {_selectedSubTask.StartDate.ToShortDateString()}");
+            Console.WriteLine($"Data de Término: {_selectedSubTask.EndDate.ToShortDateString()}");
+            Console.WriteLine($"Prioridade: {_selectedSubTask.Priority}");
+        }
+
+        private void EditTitle()
+        {
+            Console.Write("Novo Título: ");
+            string newTitle = Console.ReadLine();
+            _selectedSubTask.Title = newTitle;
+            _subTaskRepository.Update(_selectedSubTask);
+            Console.WriteLine("Título atualizado com sucesso!");
+        }
+
+        private void EditDescription()
+        {
+            Console.Write("Nova Descrição: ");
+            string newDescription = Console.ReadLine();
+            _selectedSubTask.Description = newDescription;
+            _subTaskRepository.Update(_selectedSubTask);
+            Console.WriteLine("Descrição atualizada com sucesso!");
+        }
+
+        private void EditStartDate()
+        {
+            Console.Write("Nova Data de Início (formato: dd/MM/yyyy): ");
+            if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out DateTime newStartDate))
+            {
+                _selectedSubTask.StartDate = newStartDate;
+                _subTaskRepository.Update(_selectedSubTask);
+                Console.WriteLine("Data de Início atualizada com sucesso!");
+            }
+            else
+            {
+                Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+            }
+        }
+
+        private void EditEndDate()
+        {
+            Console.Write("Nova Data de Término (formato: dd/MM/yyyy): ");
+            if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture,
+                    DateTimeStyles.None, out DateTime newEndDate))
+            {
+                _selectedSubTask.EndDate = newEndDate;
+                _subTaskRepository.Update(_selectedSubTask);
+                Console.WriteLine("Data de Término atualizada com sucesso!");
+            }
+            else
+            {
+                Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+            }
+        }
+
+        private void EditPriority()
+        {
+            Console.WriteLine("\nNova Prioridade:");
+            Console.WriteLine("Normal");
+            Console.WriteLine("Importante");
+            Console.WriteLine("Urgente");
+
             PriorityLevel priority;
             while (!System.Enum.TryParse(Console.ReadLine(), true, out priority))
             {
@@ -97,9 +189,11 @@ namespace OKRManager.UserInterface
             }
 
             _selectedSubTask.Priority = priority;
-
-            Console.WriteLine("SubTask editada com sucesso!");
-            
+            _subTaskRepository.Update(_selectedSubTask);
+            Console.WriteLine("Prioridade atualizada com sucesso!");
         }
+
     }
 }
+    
+

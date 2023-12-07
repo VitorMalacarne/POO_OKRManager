@@ -1,3 +1,4 @@
+using System.Globalization;
 using OkrManager.Interfaces;
 using OkrManager.Models;
 using OkrManager.Repositories;
@@ -9,6 +10,7 @@ public class ObjectiveInterface
 {
     private readonly Objective _selectedObjective;
     private readonly IRepository<KeyResult> _keyResultRepository = new Repository<KeyResult>();
+    private readonly IRepository<Objective> _objectiveRepository = new Repository<Objective>();
     private readonly VerificationService _verificationService = new VerificationService();
     private readonly RetrieveService _retrieveService = new RetrieveService();
 
@@ -107,18 +109,42 @@ public class ObjectiveInterface
 
     private void AddKeyResult()
     {
-        Console.WriteLine("Digite o título do novo Resultado Chave:");
-        string title = _verificationService.VerifyIsNotNull(Console.ReadLine());
+        try
+        {
+            Console.WriteLine("Digite o título do novo Resultado Chave:");
+            string title = _verificationService.VerifyIsNotNull(Console.ReadLine());
 
-        // Adicione a lógica para permitir ao usuário inserir outras informações do Resultado Chave
+            Console.WriteLine("Digite a descrição do novo Resultado Chave:");
+            string description = _verificationService.VerifyIsNotNull(Console.ReadLine());
 
-        var newKeyResult = new KeyResult(title, "Descrição padrão", DateTime.Now, DateTime.Now.AddDays(30), false, _selectedObjective);
+            Console.WriteLine("Digite a data de início do novo Resultado Chave (formato: dd/MM/yyyy):");
+            DateTime startDate;
+            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out startDate) || startDate < DateTime.Now)
+            {
+                Console.WriteLine("Data inválida. Certifique-se de inserir uma data válida e futura.");
+            }
 
-        _keyResultRepository.Update(newKeyResult);
+            Console.WriteLine("Digite a data de término do novo Resultado Chave (formato: dd/MM/yyyy):");
+            DateTime endDate;
+            while (!DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out endDate) || endDate < DateTime.Now)
+            {
+                Console.WriteLine("Data inválida. Certifique-se de inserir uma data válida e futura.");
+            }
 
-        Console.WriteLine("Resultado Chave adicionado com sucesso!");
-        Thread.Sleep(2000);
+            var newKeyResult = new KeyResult(title, description, startDate, endDate, false, _selectedObjective);
+
+            _keyResultRepository.Update(newKeyResult);
+
+            Console.WriteLine("Resultado Chave adicionado com sucesso!");
+            Thread.Sleep(1500);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao adicionar Resultado Chave: {ex.Message}");
+        }
     }
+
+
 
     private void SelectKeyResult()
     {
@@ -139,15 +165,124 @@ public class ObjectiveInterface
         var keyResultInterface = new KeyResultInterface(selectedKeyResult);
         keyResultInterface.RunKeyResultScreen();
         Console.WriteLine($"Você selecionou o Resultado Chave com Id {selectedKeyResultId}.");
-        Thread.Sleep(2000);
+        Thread.Sleep(1500);
     }
 
     private void UpdateObjective()
+{
+    Console.Clear();
+    Console.WriteLine("Atualizando Objetivo");
+    Console.WriteLine("---------------------");
+
+    // Exibir detalhes do objetivo
+    DisplayObjectiveDetails();
+
+    Console.WriteLine("\nOpções de Atualização:");
+    Console.WriteLine("1. Atualizar Título");
+    Console.WriteLine("2. Atualizar Descrição");
+    Console.WriteLine("3. Atualizar Data de Início");
+    Console.WriteLine("4. Atualizar Data de Término");
+    Console.WriteLine("5. Marcar como Concluído");
+    Console.WriteLine("0. Voltar ao Menu Principal");
+
+    Console.Write("Escolha uma opção: ");
+    string choiceStr = Console.ReadLine();
+    
+    if (int.TryParse(choiceStr, out int choice))
     {
-        // Adicione a lógica para permitir ao usuário atualizar as informações do Objetivo
-        Console.WriteLine("Lógica para atualizar o Objetivo...");
-        Thread.Sleep(2000);
+        switch (choice)
+        {
+            case 1:
+                UpdateTitle();
+                break;
+            case 2:
+                UpdateDescription();
+                break;
+            case 3:
+                UpdateStartDate();
+                break;
+            case 4:
+                UpdateEndDate();
+                break;
+            case 5:
+                MarkAsCompleted();
+                break;
+            case 0:
+                // Voltar ao Menu Principal
+                break;
+            default:
+                Console.WriteLine("Opção inválida. Tente novamente.");
+                break;
+        }
     }
+    else
+    {
+        Console.WriteLine("Opção inválida. Tente novamente.");
+    }
+}
+
+private void DisplayObjectiveDetails()
+{
+    Console.WriteLine($"Título: {_selectedObjective.Title}");
+    Console.WriteLine($"Descrição: {_selectedObjective.Description}");
+    Console.WriteLine($"Data de Início: {_selectedObjective.StartDate.ToShortDateString()}");
+    Console.WriteLine($"Data de Término: {_selectedObjective.EndDate.ToShortDateString()}");
+}
+
+private void UpdateTitle()
+{
+    Console.Write("Novo Título: ");
+    string newTitle = Console.ReadLine();
+    _selectedObjective.Title = newTitle;
+    _objectiveRepository.Update(_selectedObjective);
+    Console.WriteLine("Título atualizado com sucesso!");
+}
+
+private void UpdateDescription()
+{
+    Console.Write("Nova Descrição: ");
+    string newDescription = Console.ReadLine();
+    _selectedObjective.Description = newDescription;
+    _objectiveRepository.Update(_selectedObjective);
+    Console.WriteLine("Descrição atualizada com sucesso!");
+}
+
+private void UpdateStartDate()
+{
+    Console.Write("Nova Data de Início (formato: dd/MM/yyyy): ");
+    if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newStartDate))
+    {
+        _selectedObjective.StartDate = newStartDate;
+        _objectiveRepository.Update(_selectedObjective);
+        Console.WriteLine("Data de Início atualizada com sucesso!");
+    }
+    else
+    {
+        Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+    }
+}
+
+private void UpdateEndDate()
+{
+    Console.Write("Nova Data de Término (formato: dd/MM/yyyy): ");
+    if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newEndDate))
+    {
+        _selectedObjective.EndDate = newEndDate;
+        _objectiveRepository.Update(_selectedObjective);
+        Console.WriteLine("Data de Término atualizada com sucesso!");
+    }
+    else
+    {
+        Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+    }
+}
+private void MarkAsCompleted()
+{
+    _selectedObjective.Status = true;
+    _objectiveRepository.Update(_selectedObjective);
+    Console.WriteLine("Objetivo marcado como concluído com sucesso!");
+}
+
 
     private void DeleteKeyResult()
     {
