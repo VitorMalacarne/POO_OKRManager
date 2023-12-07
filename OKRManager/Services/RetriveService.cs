@@ -17,7 +17,7 @@ public class RetrieveService
 
         foreach (var objective in allObjectives)
         {
-            if (objective.UserId == userId)
+            if (objective.UserId == userId && !objective.Status)
             {
                 userObjectives.Add(objective);
             }
@@ -33,7 +33,7 @@ public class RetrieveService
 
         foreach (var keyResult in allKeyResults)
         {
-            if (keyResult.ObjectiveId == objectiveId)
+            if (keyResult.ObjectiveId == objectiveId && !keyResult.Status)
             {
                 objectiveKeyResults.Add(keyResult);
             }
@@ -49,7 +49,55 @@ public class RetrieveService
 
         foreach (var subTask in allSubTasks)
         {
-            if (subTask.KeyResultId == keyResultId)
+            if (subTask.KeyResultId == keyResultId && !subTask.Status)
+            {
+                keyResultSubTasks.Add(subTask);
+            }
+        }
+
+        return keyResultSubTasks;
+    }
+    
+    public List<Objective> GetAllConcludedObjectivesForUser(int userId)
+    {
+        var allObjectives = _objectiveRepository.GetAll();
+        var userObjectives = new List<Objective>();
+
+        foreach (var objective in allObjectives)
+        {
+            if (objective.UserId == userId && objective.Status)
+            {
+                userObjectives.Add(objective);
+            }
+        }
+
+        return userObjectives;
+    }
+    
+    public List<KeyResult> GetAllConcludedKeyResultsForObject(int objectiveId)
+    {
+        var allKeyResults = _keyResultRepository.GetAll();
+        var objectiveKeyResults = new List<KeyResult>();
+
+        foreach (var keyResult in allKeyResults)
+        {
+            if (keyResult.ObjectiveId == objectiveId && keyResult.Status)
+            {
+                objectiveKeyResults.Add(keyResult);
+            }
+        }
+
+        return objectiveKeyResults;
+    }
+
+    public List<SubTask> GetAllConcludedSubTasksForKeyResult(int keyResultId)
+    {
+        var allSubTasks = _subTaskRepository.GetAll();
+        var keyResultSubTasks = new List<SubTask>();
+
+        foreach (var subTask in allSubTasks)
+        {
+            if (subTask.KeyResultId == keyResultId && subTask.Status)
             {
                 keyResultSubTasks.Add(subTask);
             }

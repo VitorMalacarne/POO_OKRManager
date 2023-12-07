@@ -33,6 +33,7 @@ public class MainInterface
             Console.WriteLine("1. Adicionar Objetivo");
             Console.WriteLine("2. Selecionar Objetivo");
             Console.WriteLine("3. Excluir Objetivo");
+            Console.WriteLine("4. Objetivos Concluídos");
             Console.WriteLine("0. Sair da Sessão");
             Console.Write("Digite sua opção aqui:");
 
@@ -49,6 +50,9 @@ public class MainInterface
                     break;
                 case 3:
                     DeleteObjective();
+                    break;
+                case 4:
+                    DisplayConcludedObjectives();
                     break;
                 case 0:
                     Console.WriteLine("Saindo da sessão. Até logo!");
@@ -149,4 +153,32 @@ public class MainInterface
         Console.WriteLine("Objetivo deletado!");
         Thread.Sleep(2000);
     }
+    public void DisplayConcludedObjectives()
+    {
+        Console.Clear();
+        Console.WriteLine($"Olá, {_loggedInUser.Name}! Aqui estão seus objetivos concluídos:");
+
+        var concludedObjectives = _retrieveService.GetAllConcludedObjectivesForUser(_loggedInUser.UserId);
+
+        if (concludedObjectives.Any())
+        {
+            foreach (var objective in concludedObjectives)
+            {
+                Console.WriteLine($"ID: {objective.ObjectiveId}");
+                Console.WriteLine($"Título: {objective.Title}");
+                Console.WriteLine($"Descrição: {objective.Description}");
+                Console.WriteLine($"Data de Início: {objective.StartDate}");
+                Console.WriteLine($"Data de Término: {objective.EndDate}");
+                Console.WriteLine("--------");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Você não possui objetivos concluídos.");
+        }
+
+        Console.WriteLine("Pressione qualquer tecla para voltar ao menu principal...");
+        Console.ReadKey();
+    }
+
 }
