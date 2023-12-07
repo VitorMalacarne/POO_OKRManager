@@ -224,13 +224,32 @@ public class MainInterface
 
     private void MarkObjectiveAsNotConcluded(int objectiveId)
     {
-        // Adicione a lógica para marcar o objetivo como não concluído
-        // Utilize o serviço ou repositório apropriado para atualizar o estado do objetivo
-        // Exemplo: _objectiveRepository.MarkAsNotConcluded(objectiveId);
+        try
+        {
+            // Suponha que você tenha um serviço ou repositório adequado para manipular objetivos
+            var objective = _objectiveRepository.GetById(objectiveId);
 
-        Console.WriteLine($"Objetivo com ID {objectiveId} marcado como não concluído com sucesso!");
+            if (objective != null)
+            {
+                // Atualize o status do objetivo para não concluído
+                objective.Status = false;
+                _objectiveRepository.Update(objective);
+
+                Console.WriteLine($"Objetivo com ID {objectiveId} marcado como não concluído com sucesso!");
+            }
+            else
+            {
+                Console.WriteLine($"Objetivo com ID {objectiveId} não encontrado.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ocorreu um erro ao marcar o objetivo como não concluído: {ex.Message}");
+        }
+
         Thread.Sleep(1000);
     }
+
 
 
 }

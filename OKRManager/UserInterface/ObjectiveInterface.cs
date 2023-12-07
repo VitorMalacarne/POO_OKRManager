@@ -26,6 +26,7 @@ public class ObjectiveInterface
         Console.WriteLine($"Detalhes do Objetivo: {_selectedObjective.Description}");
         Console.WriteLine($"Data de Início: {_selectedObjective.StartDate}");
         Console.WriteLine($"Data de Término: {_selectedObjective.EndDate}");
+        DisplayObjectiveCompletionPercentage(_selectedObjective);
 
         DisplayKeyResults();
 
@@ -303,4 +304,22 @@ private void MarkAsCompleted()
         Console.WriteLine("Resultado Chave excluído com sucesso!");
         Thread.Sleep(2000);
     }
+    
+    public void DisplayObjectiveCompletionPercentage(Objective objective)
+    {
+        var allKeyResults = _retrieveService.GetAllKeyResultsForObject(objective.ObjectiveId);
+        var concludedKeyResults = _retrieveService.GetAllConcludedKeyResultsForObject(objective.ObjectiveId);
+
+        if (allKeyResults.Any())
+        {
+            double completionPercentage = (double)concludedKeyResults.Count / allKeyResults.Count * 100;
+
+            Console.WriteLine($"Porcentagem de Conclusão do Objetivo '{objective.Title}': {completionPercentage:F2}%");
+        }
+        else
+        {
+            Console.WriteLine($"O Objetivo '{objective.Title}' não possui Resultados Chave associados.");
+        }
+    }
+
 }

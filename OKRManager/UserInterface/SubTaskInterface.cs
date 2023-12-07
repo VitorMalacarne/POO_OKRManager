@@ -32,7 +32,7 @@ namespace OKRManager.UserInterface
             Console.WriteLine($"Data de Início: {_selectedSubTask.StartDate.ToShortDateString()}");
             Console.WriteLine($"Data de Término: {_selectedSubTask.EndDate.ToShortDateString()}");
             Console.WriteLine($"Prioridade: {_selectedSubTask.Priority}");
-            Console.WriteLine($"Status: {_selectedSubTask.Status}");
+            Console.WriteLine($"Status: {(_selectedSubTask.Status ? "Concluído" : "Em andamento")}");
 
             while (true)
             {
@@ -123,6 +123,7 @@ namespace OKRManager.UserInterface
             Console.WriteLine($"Data de Início: {_selectedSubTask.StartDate.ToShortDateString()}");
             Console.WriteLine($"Data de Término: {_selectedSubTask.EndDate.ToShortDateString()}");
             Console.WriteLine($"Prioridade: {_selectedSubTask.Priority}");
+            Console.WriteLine($"Status: {(_selectedSubTask.Status ? "Concluído" : "Em andamento")}");
         }
 
         private void EditTitle()

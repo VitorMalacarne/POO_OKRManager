@@ -31,7 +31,9 @@ public class KeyResultInterface
             Console.WriteLine($"Detalhes do Resultado Chave: {_selectedKeyResult.Description}");
             Console.WriteLine($"Data de Início: {_selectedKeyResult.StartDate}");
             Console.WriteLine($"Data de Término: {_selectedKeyResult.EndDate}");
-            Console.WriteLine($"Status: {_selectedKeyResult.Status}");
+            Console.WriteLine($"Status: {(_selectedKeyResult.Status ? "Concluído" : "Em andamento")}");
+            DisplayKeyResultCompletionPercentage(_selectedKeyResult);
+
 
             DisplaySubTasks();
             
@@ -203,29 +205,36 @@ public class KeyResultInterface
 
     if (int.TryParse(choiceStr, out int choice))
     {
-        switch (choice)
+        try
         {
-            case 1:
-                UpdateTitle();
-                break;
-            case 2:
-                UpdateDescription();
-                break;
-            case 3:
-                UpdateStartDate();
-                break;
-            case 4:
-                UpdateEndDate();
-                break;
-            case 5:
-                MarkAsCompleted();
-                break;
-            case 6:
-                // Voltar ao Menu Anterior
-                break;
-            default:
-                Console.WriteLine("Opção inválida. Tente novamente.");
-                break;
+            switch (choice)
+            {
+                case 1:
+                    UpdateTitle();
+                    break;
+                case 2:
+                    UpdateDescription();
+                    break;
+                case 3:
+                    UpdateStartDate();
+                    break;
+                case 4:
+                    UpdateEndDate();
+                    break;
+                case 5:
+                    MarkAsCompleted();
+                    break;
+                case 6:
+                    // Voltar ao Menu Anterior
+                    break;
+                default:
+                    Console.WriteLine("Opção inválida. Tente novamente.");
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro: {ex.Message}");
         }
     }
     else
@@ -236,9 +245,92 @@ public class KeyResultInterface
 
 private void MarkAsCompleted()
 {
-    _selectedKeyResult.Status = true;
-    _keyResultRepository.Update(_selectedKeyResult);
-    Console.WriteLine("Resultado Chave marcado como concluído com sucesso!");
+    try
+    {
+        _selectedKeyResult.Status = true;
+        _keyResultRepository.Update(_selectedKeyResult);
+        Console.WriteLine("Resultado Chave marcado como concluído com sucesso!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao marcar como concluído: {ex.Message}");
+    }
+}
+
+private void UpdateTitle()
+{
+    try
+    {
+        Console.Write("Novo Título: ");
+        string newTitle = Console.ReadLine();
+        _selectedKeyResult.Title = newTitle;
+        _keyResultRepository.Update(_selectedKeyResult);
+        Console.WriteLine("Título atualizado com sucesso!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao atualizar o título: {ex.Message}");
+    }
+}
+
+private void UpdateDescription()
+{
+    try
+    {
+        Console.Write("Nova Descrição: ");
+        string newDescription = Console.ReadLine();
+        _selectedKeyResult.Description = newDescription;
+        _keyResultRepository.Update(_selectedKeyResult);
+        Console.WriteLine("Descrição atualizada com sucesso!");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao atualizar a descrição: {ex.Message}");
+    }
+}
+
+private void UpdateStartDate()
+{
+    try
+    {
+        Console.Write("Nova Data de Início (formato: dd/MM/yyyy): ");
+        if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newStartDate))
+        {
+            _selectedKeyResult.StartDate = newStartDate;
+            _keyResultRepository.Update(_selectedKeyResult);
+            Console.WriteLine("Data de Início atualizada com sucesso!");
+        }
+        else
+        {
+            Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao atualizar a data de início: {ex.Message}");
+    }
+}
+
+private void UpdateEndDate()
+{
+    try
+    {
+        Console.Write("Nova Data de Término (formato: dd/MM/yyyy): ");
+        if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newEndDate))
+        {
+            _selectedKeyResult.EndDate = newEndDate;
+            _keyResultRepository.Update(_selectedKeyResult);
+            Console.WriteLine("Data de Término atualizada com sucesso!");
+        }
+        else
+        {
+            Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Erro ao atualizar a data de término: {ex.Message}");
+    }
 }
 
 private void DisplayKeyResultDetails()
@@ -247,56 +339,8 @@ private void DisplayKeyResultDetails()
     Console.WriteLine($"Descrição: {_selectedKeyResult.Description}");
     Console.WriteLine($"Data de Início: {_selectedKeyResult.StartDate.ToShortDateString()}");
     Console.WriteLine($"Data de Término: {_selectedKeyResult.EndDate.ToShortDateString()}");
+    Console.WriteLine($"Status: {(_selectedKeyResult.Status ? "Concluído" : "Em andamento")}");
 }
-
-private void UpdateTitle()
-{
-    Console.Write("Novo Título: ");
-    string newTitle = Console.ReadLine();
-    _selectedKeyResult.Title = newTitle;
-    _keyResultRepository.Update(_selectedKeyResult);
-    Console.WriteLine("Título atualizado com sucesso!");
-}
-
-private void UpdateDescription()
-{
-    Console.Write("Nova Descrição: ");
-    string newDescription = Console.ReadLine();
-    _selectedKeyResult.Description = newDescription;
-    _keyResultRepository.Update(_selectedKeyResult);
-    Console.WriteLine("Descrição atualizada com sucesso!");
-}
-
-private void UpdateStartDate()
-{
-    Console.Write("Nova Data de Início (formato: dd/MM/yyyy): ");
-    if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newStartDate))
-    {
-        _selectedKeyResult.StartDate = newStartDate;
-        _keyResultRepository.Update(_selectedKeyResult);
-        Console.WriteLine("Data de Início atualizada com sucesso!");
-    }
-    else
-    {
-        Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
-    }
-}
-
-private void UpdateEndDate()
-{
-    Console.Write("Nova Data de Término (formato: dd/MM/yyyy): ");
-    if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newEndDate))
-    {
-        _selectedKeyResult.EndDate = newEndDate;
-        _keyResultRepository.Update(_selectedKeyResult);
-        Console.WriteLine("Data de Término atualizada com sucesso!");
-    }
-    else
-    {
-        Console.WriteLine("Formato de data inválido. A data não foi atualizada.");
-    }
-}
-
 
 
     private void DeleteSubTask()
@@ -316,6 +360,23 @@ private void UpdateEndDate()
 
         _subTaskRepository.Delete(selectedSubTaskId);
         Console.WriteLine("SubTask excluída com sucesso!");
-        Thread.Sleep(2000);
+        Thread.Sleep(1500);
     }
+    public void DisplayKeyResultCompletionPercentage(KeyResult keyResult)
+    {
+        var allSubTasks = _retrieveService.GetAllSubTasksForKeyResult(keyResult.KeyResultId);
+        var concludedSubTasks = _retrieveService.GetAllConcludedSubTasksForKeyResult(keyResult.KeyResultId);
+
+        if (allSubTasks.Any())
+        {
+            double completionPercentage = (double)concludedSubTasks.Count / allSubTasks.Count * 100;
+
+            Console.WriteLine($"Porcentagem de Conclusão do Resultado Chave '{keyResult.Title}': {completionPercentage:F2}%");
+        }
+        else
+        {
+            Console.WriteLine($"O Resultado Chave '{keyResult.Title}' não possui Subtarefas associadas.");
+        }
+    }
+
 }
