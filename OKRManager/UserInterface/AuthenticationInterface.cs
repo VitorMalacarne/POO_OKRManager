@@ -58,23 +58,40 @@ public class AuthenticationInterface
         Console.Clear();
         Console.WriteLine("Digite seu nome de usuário:");
         string username = _verificationService.VerifyIsNotNull(Console.ReadLine());
+        
+        int? userId = _authService.AuthenticateUser(username);
 
-        Console.WriteLine("Digite sua senha:");
-        string password = _verificationService.VerifyIsNotNull(Console.ReadLine());
-
-        int? userId = _authService.AuthenticateUser(username, password);
-
-        if (userId != null)
+        if (userId != null && userId != 0)
         {
-            Console.WriteLine($"Login bem-sucedido!");
-            Thread.Sleep(1000);
-            var loggedInUser = _userRepository.GetById(userId.Value);
-            var mainInterface = new MainInterface(loggedInUser);
-            mainInterface.RunMainScreen();
+            try
+            {
+                var loggedInUser = _userRepository.GetById(userId.Value);
+
+                if (loggedInUser != null)
+                {
+                    Console.WriteLine($"Login bem-sucedido!");
+                    Thread.Sleep(1000);
+                    var mainInterface = new MainInterface(loggedInUser);
+                    mainInterface.RunMainScreen();
+                }
+                else
+                {
+                    Console.WriteLine("Erro ao recuperar informações do usuário.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Erro inesperado: {ex.Message}");
+            }
+        }
+        else if (userId == 0)
+        {
+            Console.WriteLine("Cadastro bem-sucedido! Faça o login para acessar o sistema.");
         }
         else
         {
             Console.WriteLine("Falha na autenticação. Verifique suas credenciais e tente novamente.");
+            Thread.Sleep(1500);
         }
     }
 
@@ -83,14 +100,12 @@ public class AuthenticationInterface
         Console.WriteLine("Digite seu nome de usuário:");
         string username = _verificationService.VerifyIsNotNull(Console.ReadLine());
 
-        Console.WriteLine("Digite sua senha:");
-        string password = _verificationService.VerifyIsNotNull(Console.ReadLine());
-
-        bool registrationSuccess = _authService.RegisterUser(username, password);
+        bool registrationSuccess = _authService.RegisterUser(username);
 
         if (registrationSuccess)
         {
             Console.WriteLine("Cadastro bem-sucedido! Faça o login para acessar o sistema.");
+            Thread.Sleep(1500);
         }
         else
         {

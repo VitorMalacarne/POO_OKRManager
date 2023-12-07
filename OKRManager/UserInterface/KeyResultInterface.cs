@@ -1,3 +1,4 @@
+using System.Globalization;
 using OKRManager.Enum;
 using OkrManager.Interfaces;
 using OkrManager.Models;
@@ -10,6 +11,7 @@ public class KeyResultInterface
 {
     private readonly KeyResult _selectedKeyResult;
     private readonly IRepository<SubTask> _subTaskRepository = new Repository<SubTask>();
+    private readonly IRepository<KeyResult> _keyResultRepository = new Repository<KeyResult>();
     private readonly VerificationService _verificationService = new VerificationService();
     private readonly RetrieveService _retrieveService = new RetrieveService();
 
@@ -20,18 +22,20 @@ public class KeyResultInterface
 
     public void RunKeyResultScreen()
     {
-        Console.Clear();
-        Console.WriteLine($"Detalhes do Resultado Chave: {_selectedKeyResult.Title}");
-        Console.WriteLine($"Data de Início: {_selectedKeyResult.StartDate}");
-        Console.WriteLine($"Data de Término: {_selectedKeyResult.EndDate}");
-        Console.WriteLine($"Status: {_selectedKeyResult.Status}");
-
-        DisplaySubTasks();
 
         int choice;
         do
         {
-            Console.WriteLine("Escolha uma opção:");
+            Console.Clear();
+            Console.WriteLine($"Título do Resultado Chave: {_selectedKeyResult.Title}");
+            Console.WriteLine($"Detalhes do Resultado Chave: {_selectedKeyResult.Description}");
+            Console.WriteLine($"Data de Início: {_selectedKeyResult.StartDate}");
+            Console.WriteLine($"Data de Término: {_selectedKeyResult.EndDate}");
+            Console.WriteLine($"Status: {_selectedKeyResult.Status}");
+
+            DisplaySubTasks();
+            
+            Console.WriteLine("\nEscolha uma opção:");
             Console.WriteLine("1. Adicionar SubTask");
             Console.WriteLine("2. Selecionar SubTask");
             Console.WriteLine("3. Atualizar Resultado Chave");
@@ -58,7 +62,7 @@ public class KeyResultInterface
                     break;
                 case 0:
                     Console.WriteLine("Voltando para a Tela Anterior...");
-                    Thread.Sleep(2000);
+                    Thread.Sleep(750);
                     break;
                 default:
                     Console.WriteLine("Opção inválida. Tente novamente.");
@@ -71,20 +75,47 @@ public class KeyResultInterface
     private void DisplaySubTasks()
     {
         var subTasks = _retrieveService.GetAllSubTasksForKeyResult(_selectedKeyResult.KeyResultId);
+        var concludedSubTasks = _retrieveService.GetAllConcludedSubTasksForKeyResult(_selectedKeyResult.KeyResultId);
 
-        if (subTasks.Any())
+        if (subTasks.Any() || concludedSubTasks.Any())
         {
-            Console.WriteLine("\nSubTasks Associadas a Este Resultado Chave:");
+            Console.WriteLine("\nSubtasks Associadas a Este Resultado Chave:");
+            Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15} {4, -10} {5, -10}", "ID", "Título", "Status", "Data Início", "Data Fim", "Prioridade");
+
             foreach (var subTask in subTasks)
             {
-                Console.WriteLine($"{subTask.SubTaskId}. {subTask.Title} - Prioridade: {subTask.Priority}");
+                Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15} {4, -10} {5, -10}",
+                    subTask.SubTaskId,
+                    subTask.Title,
+                    "Em Andamento",
+                    subTask.StartDate.ToShortDateString(),
+                    subTask.EndDate.ToShortDateString(),
+                    subTask.Priority);
+            }
+
+            if (concludedSubTasks.Any())
+            {
+                Console.WriteLine("\nSubtasks Concluídas:");
+                foreach (var concludedSubTask in concludedSubTasks)
+                {
+                    Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15} {4, -10} {5, -10}",
+                        concludedSubTask.SubTaskId,
+                        concludedSubTask.Title,
+                        "Concluída",
+                        concludedSubTask.StartDate.ToShortDateString(),
+                        concludedSubTask.EndDate.ToShortDateString(),
+                        concludedSubTask.Priority);
+                }
             }
         }
         else
         {
-            Console.WriteLine("\nNão há SubTasks associadas a este Resultado Chave.");
+            Console.WriteLine("\nNão há Subtasks associadas a este resultado chave.");
         }
     }
+
+
+
 
     private void AddSubTask()
     {
@@ -106,7 +137,7 @@ public class KeyResultInterface
         _subTaskRepository.Update(newSubTask);
 
         Console.WriteLine("SubTask adicionada com sucesso!");
-        Thread.Sleep(2000);
+        Thread.Sleep(1000);
     }
 
     private void SelectSubTask()
@@ -126,15 +157,49 @@ public class KeyResultInterface
 
         
         Console.WriteLine($"Você selecionou a SubTask com Id {selectedSubTaskId}.");
-        Thread.Sleep(2000);
+        Thread.Sleep(1000);
     }
 
     private void UpdateKeyResult()
     {
-        // Adicione a lógica para permitir ao usuário atualizar as informações do Resultado Chave
-        Console.WriteLine("Lógica para atualizar o Resultado Chave...");
+        Console.Clear();
+        Console.WriteLine("Atualizando Resultado Chave:\n");
+
+        Console.WriteLine($"Título Atual: {_selectedKeyResult.Title}");
+        Console.WriteLine($"Descrição Atual: {_selectedKeyResult.Description}");
+        Console.WriteLine($"Data de Início Atual: {_selectedKeyResult.StartDate.ToShortDateString()}");
+        Console.WriteLine($"Data de Término Atual: {_selectedKeyResult.EndDate.ToShortDateString()}");
+        Console.WriteLine($"Status Atual: {_selectedKeyResult.Status}");
+
+        Console.WriteLine("\nDigite os novos dados:");
+
+        Console.Write("Novo Título: ");
+        string newTitle = Console.ReadLine();
+
+        Console.Write("Nova Descrição: ");
+        string newDescription = Console.ReadLine();
+
+        Console.Write("Nova Data de Início (formato dd/MM/yyyy): ");
+        if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newStartDate))
+        {
+            _selectedKeyResult.StartDate = newStartDate;
+        }
+
+        Console.Write("Nova Data de Término (formato dd/MM/yyyy): ");
+        if (DateTime.TryParseExact(Console.ReadLine(), "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime newEndDate))
+        {
+            _selectedKeyResult.EndDate = newEndDate;
+        }
+
+        // Aqui você pode adicionar mais campos conforme necessário.
+
+        // Atualizar os dados no banco de dados (usando o seu método de atualização específico)
+        _keyResultRepository.Update(_selectedKeyResult);
+
+        Console.WriteLine("Resultado Chave atualizado com sucesso!");
         Thread.Sleep(2000);
     }
+
 
     private void DeleteSubTask()
     {

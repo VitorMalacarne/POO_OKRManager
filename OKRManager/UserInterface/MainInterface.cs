@@ -23,13 +23,14 @@ public class MainInterface
         Console.Clear();
         Console.WriteLine($"Olá, {_loggedInUser.Name}! Bem-vindo ao OKRManager.");
         Console.WriteLine("Entrando no sistema...");
-        Thread.Sleep(2000);
+        Thread.Sleep(1000);
         int choice;
         do
         {
+            Console.Clear();
             Console.WriteLine($"Olá, {_loggedInUser.Name}!");
             DisplayObjectives();
-            Console.WriteLine("Escolha uma opção:");
+            Console.WriteLine("\nEscolha uma opção:");
             Console.WriteLine("1. Adicionar Objetivo");
             Console.WriteLine("2. Selecionar Objetivo");
             Console.WriteLine("3. Excluir Objetivo");
@@ -56,6 +57,7 @@ public class MainInterface
                     break;
                 case 0:
                     Console.WriteLine("Saindo da sessão. Até logo!");
+                    Thread.Sleep(1000);
                     break;
                 default:
                     Console.WriteLine("Opção inválida. Tente novamente.");
@@ -72,9 +74,15 @@ public class MainInterface
         if (objectives.Any())
         {
             Console.WriteLine("Seus Objetivos:\n");
+            Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15}", "ID", "Título", "Data Início", "Data Fim");
+
             foreach (var objective in objectives)
             {
-                Console.WriteLine($"{objective.ObjectiveId}. {objective.Title}");
+                Console.WriteLine("{0, -5} {1, -30} {2, -15} {3, -15}",
+                    objective.ObjectiveId, 
+                    objective.Title, 
+                    objective.StartDate.ToString("dd/MM/yyyy"), 
+                    objective.EndDate.ToString("dd/MM/yyyy"));
             }
         }
         else
@@ -82,6 +90,7 @@ public class MainInterface
             Console.WriteLine("Você não possui objetivos cadastrados.");
         }
     }
+
 
     private void AddObjective()
     {
@@ -125,13 +134,12 @@ public class MainInterface
         int selectedObjectiveId;
         while (!int.TryParse(Console.ReadLine(), out selectedObjectiveId) || !objectives.Any(o => o.ObjectiveId == selectedObjectiveId))
         {
-            Console.WriteLine("Opção inválida. Tente novamente.");
+            Console.Write("\nOpção inválida. Tente novamente:");
         }
 
         var selectedObjective = _objectiveRepository.GetById(selectedObjectiveId);
         var objectInterface = new ObjectiveInterface(selectedObjective);
         objectInterface.RunObjectiveScreen();
-        Console.WriteLine($"Você selecionou o objetivo com Id {selectedObjectiveId}.");
 
     }
 
@@ -147,7 +155,7 @@ public class MainInterface
         int selectedObjectiveId;
         while (!int.TryParse(Console.ReadLine(), out selectedObjectiveId) || !objectives.Any(o => o.ObjectiveId == selectedObjectiveId))
         {
-            Console.WriteLine("Opção inválida. Tente novamente.");
+            Console.Write("\nOpção inválida. Tente novamente:");
         }
         _objectiveRepository.Delete(selectedObjectiveId);
         Console.WriteLine("Objetivo deletado!");

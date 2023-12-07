@@ -54,9 +54,14 @@ public class RetrieveService
                 keyResultSubTasks.Add(subTask);
             }
         }
+        
+        keyResultSubTasks = keyResultSubTasks
+            .OrderByDescending(subTask => subTask.Priority)
+            .ToList();
 
         return keyResultSubTasks;
     }
+
     
     public List<Objective> GetAllConcludedObjectivesForUser(int userId)
     {
@@ -102,6 +107,9 @@ public class RetrieveService
                 keyResultSubTasks.Add(subTask);
             }
         }
+        keyResultSubTasks = keyResultSubTasks
+            .OrderByDescending(subTask => subTask.Priority)
+            .ToList();
 
         return keyResultSubTasks;
     }

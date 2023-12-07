@@ -20,17 +20,17 @@ public class ObjectiveInterface
     public void RunObjectiveScreen()
     {
         Console.Clear();
-        Console.WriteLine($"Detalhes do Objetivo: {_selectedObjective.Title}");
+        Console.WriteLine($"Título do Objetivo: {_selectedObjective.Title}");
+        Console.WriteLine($"Detalhes do Objetivo: {_selectedObjective.Description}");
         Console.WriteLine($"Data de Início: {_selectedObjective.StartDate}");
         Console.WriteLine($"Data de Término: {_selectedObjective.EndDate}");
-        Console.WriteLine($"Status: {_selectedObjective.Status}");
 
         DisplayKeyResults();
 
         int choice;
         do
         {
-            Console.WriteLine("Escolha uma opção:");
+            Console.WriteLine("\nEscolha uma opção:");
             Console.WriteLine("1. Adicionar Resultado Chave");
             Console.WriteLine("2. Selecionar Resultado Chave");
             Console.WriteLine("3. Alterar Objetivo");
@@ -57,7 +57,7 @@ public class ObjectiveInterface
                     break;
                 case 0:
                     Console.WriteLine("Voltando para a Tela Anterior...");
-                    Thread.Sleep(2000);
+                    Thread.Sleep(750);
                     break;
                 default:
                     Console.WriteLine("Opção inválida. Tente novamente.");
@@ -70,13 +70,31 @@ public class ObjectiveInterface
     private void DisplayKeyResults()
     {
         var keyResults = _retrieveService.GetAllKeyResultsForObject(_selectedObjective.ObjectiveId);
+        var concludedKeyResults = _retrieveService.GetAllConcludedKeyResultsForObject(_selectedObjective.ObjectiveId);
 
-        if (keyResults.Any())
+        if (keyResults.Any() || concludedKeyResults.Any())
         {
             Console.WriteLine("\nResultados Chave Associados a Este Objetivo:");
+            Console.WriteLine("{0, -5} {1, -30} {2, -15}", "ID", "Título", "Status");
+
             foreach (var keyResult in keyResults)
             {
-                Console.WriteLine($"{keyResult.KeyResultId}. {keyResult.Title}");
+                Console.WriteLine("{0, -5} {1, -30} {2, -15}",
+                    keyResult.KeyResultId,
+                    keyResult.Title,
+                    "Em Andamento");
+            }
+
+            if (concludedKeyResults.Any())
+            {
+                Console.WriteLine("\nResultados Chave Concluídos:");
+                foreach (var concludedKeyResult in concludedKeyResults)
+                {
+                    Console.WriteLine("{0, -5} {1, -30} {2, -15}",
+                        concludedKeyResult.KeyResultId,
+                        concludedKeyResult.Title,
+                        "Concluído");
+                }
             }
         }
         else
@@ -84,6 +102,8 @@ public class ObjectiveInterface
             Console.WriteLine("\nNão há Resultados Chave associados a este objetivo.");
         }
     }
+
+
 
     private void AddKeyResult()
     {
